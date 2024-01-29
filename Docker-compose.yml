@@ -1,1 +1,40 @@
 version: '4.27'  #docker version
+
+services: #define the services that are going to be associated with this docker container
+  
+  www: #its just a service name u can name it as u wish
+
+    image: php:apache #the parent layer of the www container it will be downloaded from docker hub (check docker hub to find more images)
+    
+    volumes: #we define volumes to make the code syncronized with the container cause the images are read only
+      
+      - "./:/var/www/html" #sync project directory with the container web directory
+      # - "the root of project irectory in local : the project directory in the container"
+    
+    ports: # the ports to acces the service  (https://127.0.0.1:80)
+
+      - 80:80 #binding firt port on my local machine : to the port of the container
+      
+      - 443:443 # for future ssl trafic
+    
+  # now we are going to define a database service..
+  db:
+    image: mysql:latest #mysql is a parent image from docker hub :latest is the version 
+
+    environment:
+      - MYSQL_DATABASE=php_docker
+      - MYSQL_USER=php_docker
+      - MYSQL_PASSWORD=password # this should live in a env var
+      - MYSQL_ALLOW_EMPTY_PASSWORD=1 #equivalant to true
+    volumes:
+      - "./db:/docker-entrypoint-initdb.d" #sync persistant sql files with container
+      # (the db folder has been created via phpmy admin and now we dont wana lose the data base that we created so we need a volume to keep it safe )
+
+  #so now we have the database service but we need an interface to interact with it
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - 8001:80
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
